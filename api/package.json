@@ -23,6 +23,9 @@
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/throttler": "^5.1.2",
+    "nan": "^2.19.0",
+    "node-canvas": "^2.9.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },
