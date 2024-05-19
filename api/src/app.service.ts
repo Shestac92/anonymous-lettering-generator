@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { readdir, access } from 'fs/promises';
+import { readdir } from 'fs/promises';
 import { resolve, join, extname } from 'path';
 import { Image, createCanvas, loadImage } from 'node-canvas';
 import { Prompt } from './prompt.interface';
 
 // TODO: https://www.npmjs.com/package/canvas
-const SUPPORTED_EXTENSION = '.png';
+const SUPPORTED_EXTENSION = '.jpg';
 const MARGIN_PX = 10;
 const CHAR_WIDTH_PX = 20;
 const CHAR_HEIGHT_PX = 30;
@@ -24,20 +24,19 @@ export class AppService {
 
   public async handlePrompt({
     prompt,
-    lang,
+    transparent = false,
     lineSpacingFactor,
     letterSpacingFactor,
     positionRandomOffsetFactor,
     rotationRandomDegreeFactor,
     sizeRandomFactor,
   }: Prompt): Promise<any> {
-    await this.validateLanguage(lang);
     prompt = this.sanitizePrompt(prompt);
     const lines = this.promptToLines(prompt);
 
     return this.drawLines(
-      lang,
       lines,
+      transparent,
       this.normalizeFactor(lineSpacingFactor, MAX_LINE_SPACING_PX),
       this.normalizeFactor(letterSpacingFactor, MAX_LETTER_SPACING_PX),
       this.normalizeFactor(positionRandomOffsetFactor, MAX_X_OFFSET_PX),
@@ -67,7 +66,8 @@ export class AppService {
 
   private promptToLines(prompt: string): string[] {
     const lines: string[] = [];
-    const words = prompt.split(' ');
+    const words = prompt.split(/\n|\s/);
+    // const words = prompt.split(' ');
     let word = words[0];
     let currentLine = this.wrapWord(word, lines);
 
@@ -112,17 +112,9 @@ export class AppService {
     return prompt.toLowerCase().trim();
   }
 
-  private async validateLanguage(lang: string): Promise<void> {
-    try {
-      await access(join(this.assetsPath, lang));
-    } catch (err) {
-      throw new BadRequestException(`Language '${lang}' is not supported`);
-    }
-  }
-
   private async drawLines(
-    lang: string,
     lines: string[],
+    transparent: boolean,
     lineSpacing: number,
     letterSpacing: number,
     maxXOffset: number,
@@ -135,8 +127,12 @@ export class AppService {
 
     const canvas = createCanvas(canvasWidth, canvasHeight);
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (!transparent) {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
     ctx.shadowBlur = 2;
     ctx.shadowColor = 'grey';
 
@@ -145,7 +141,7 @@ export class AppService {
 
     for (const line of lines) {
       const chars = line.split('');
-      const charImgs = await this.getCharImages(lang, chars);
+      const charImgs = await this.getCharImages(chars);
 
       for (const img of charImgs) {
         if (img) {
@@ -174,7 +170,7 @@ export class AppService {
       cursorX = MARGIN_PX;
     }
 
-    return canvas.toBuffer('image/jpeg', { quality: 0.5 }).toString('base64');
+    return canvas.toBuffer('image/png').toString('base64');
   }
 
   private imageFilesFilter(fileNames: string[]): string[] {
@@ -183,29 +179,27 @@ export class AppService {
     );
   }
 
-  private noImgError(char: string, lang: string): never {
+  private noImgError(char: string, charCode: number): never {
     throw new BadRequestException(
-      `No images for '${char}' in '${lang}' language was found`,
+      `No images for '${char}' with char code '${charCode}' were found`,
     );
   }
 
-  private async getCharImages(
-    lang: string,
-    chars: string[],
-  ): Promise<(Image | undefined)[]> {
+  private async getCharImages(chars: string[]): Promise<(Image | undefined)[]> {
     const promisedImageFilePaths = chars.map(async (char) => {
       if (char === ' ') {
         return;
       }
 
-      const charDirPath = join(this.assetsPath, lang, char);
+      const charCode = char.charCodeAt(0);
+      const charDirPath = join(this.assetsPath, `${charCode}`);
 
       const charFiles = await readdir(charDirPath)
         .then(this.imageFilesFilter)
-        .catch(() => this.noImgError(char, lang));
+        .catch(() => this.noImgError(char, charCode));
 
       if (!charFiles.length) {
-        this.noImgError(char, lang);
+        this.noImgError(char, charCode);
       }
 
       const charImgFilePath = join(

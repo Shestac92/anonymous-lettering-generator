@@ -53,6 +53,10 @@ button:hover {
   background-color: #98a5b4;
 }
 
+#limitations {
+  width: 480px;
+}
+
 #responseContainer {
   margin-top: 20px;
 }
@@ -77,7 +81,6 @@ footer a {
 }
 
 /* parameters element */
-
 details {
   user-select: none;
   display: flex;
@@ -88,16 +91,12 @@ details {
 }
 
 summary {
-  display: flex;
+  text-align: left;
   cursor: pointer;
 }
 
-summary::-webkit-details-marker {
-  display: none;
-}
-
 /* slider element */
-.slider-wrapper {
+.control-wrapper {
   display: flex;
   align-items: center; /* Ensure labels and sliders are aligned */
   margin: 5px;
@@ -109,8 +108,13 @@ summary::-webkit-details-marker {
   border-radius: 5px;
 }
 
-.slider-label {
+.control-label {
   margin-right: 30px;
   text-align: left;
   width: 200px;
+}
+
+#limitations {
+  max-width: 100%;
+  text-align: left;
 }

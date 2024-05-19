@@ -1,6 +1,6 @@
 export interface Prompt {
   prompt: string;
-  lang: string;
+  transparent?: boolean;
   lineSpacingFactor?: number;
   letterSpacingFactor?: number;
   positionRandomOffsetFactor?: number;
