@@ -1,4 +1,3 @@
-// import React from 'react';
 import { useState } from 'react';
 import './App.css';
 import Lottie from 'react-lottie';
@@ -15,6 +14,8 @@ function App() {
   const [positionRandomOffsetFactor, setPositionRandomOffsetFactor] = useState(20);
   const [rotationRandomDegreeFactor, setRotationRandomDegreeFactor] = useState(20);
   const [sizeRandomFactor, setSizeRandomFactor] = useState(20);
+  const isDev = process.env.NODE_ENV === 'development';
+  const API_URL = isDev ? 'http://localhost:3001/api/generate' : '/api/generate';
 
   const animationOpts = {
     loop: true,
@@ -30,7 +31,7 @@ function App() {
       return;
     }
 
-    const rawRes = await fetch("http://localhost:3001/api/generate", {
+    const rawRes = await fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
         prompt,
