@@ -1,6 +1,8 @@
 // import React from 'react';
 import { useState } from 'react';
 import './App.css';
+import Lottie from 'react-lottie';
+import logoAnimation from './logo-animation.json';
 
 
 function App() {
@@ -13,6 +15,15 @@ function App() {
   const [positionRandomOffsetFactor, setPositionRandomOffsetFactor] = useState(20);
   const [rotationRandomDegreeFactor, setRotationRandomDegreeFactor] = useState(20);
   const [sizeRandomFactor, setSizeRandomFactor] = useState(20);
+
+  const animationOpts = {
+    loop: true,
+    autoplay: true,
+    animationData: logoAnimation,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice"
+    }
+  };
 
   async function handleClick() {
     if (!prompt) {
@@ -51,7 +62,11 @@ function App() {
 
       <div className="container">
         <header>
-          <img src="https://via.placeholder.com/150x50.png?text=Logo" alt="Logo" id="logo"></img>
+          <Lottie
+            options={animationOpts}
+            height={200}
+            width={500}
+          />
         </header>
 
         <main>
