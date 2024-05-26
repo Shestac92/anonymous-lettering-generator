@@ -29,8 +29,6 @@ function App() {
   };
 
   useEffect(() => {
-    console.log("I have been mounted");
-
     fetch(`/logo-animation.json`)
       .then(res => res.json())
       .then(json => setAnimationData(json));
