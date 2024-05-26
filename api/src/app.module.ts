@@ -3,19 +3,28 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-
-const isProd = process.env.NODE_ENV === 'production';
-const staticRoot = isProd
-  ? join(__dirname, '..', '..', 'client', 'build')
-  : join(__dirname, '..', '..', 'client', 'build');
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: staticRoot,
+      rootPath: join(__dirname, '..', '..', 'client', 'build'),
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

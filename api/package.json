@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "build:prod": "nest build --path tsconfig.build.prod.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -25,8 +26,9 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/serve-static": "^4.0.2",
     "@nestjs/throttler": "^5.1.2",
+    "canvas": "^2.11.2",
+    "helmet": "^7.1.0",
     "nan": "^2.19.0",
-    "node-canvas": "^2.9.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },

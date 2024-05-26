@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { readdir } from 'fs/promises';
 import { resolve, join, extname } from 'path';
-import { Image, createCanvas, loadImage } from 'node-canvas';
+import { Image, createCanvas, loadImage } from 'canvas';
 import { Prompt } from './prompt.interface';
 
 // TODO: https://www.npmjs.com/package/canvas
@@ -100,7 +100,7 @@ export class AppService {
     for (let i = 0; i < word.length; i += MAX_CHARS_IN_LINE) {
       const subLine = word.slice(i, i + MAX_CHARS_IN_LINE);
 
-      if (subLine.length < MAX_CHARS_IN_LINE) {
+      if (subLine.length <= MAX_CHARS_IN_LINE) {
         return subLine;
       }
 

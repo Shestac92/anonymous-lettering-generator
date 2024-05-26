@@ -4,14 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "concurrently --kill-others \"npm run start:dev --workspace=api\" \"npm run start:dev --workspace=client\""
   },
-  "requiredScripts": ["start:dev"],
   "keywords": [],
   "author": "",
   "license": "ISC",
   "workspaces": [
     "client",
     "api"
-  ]
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
 }

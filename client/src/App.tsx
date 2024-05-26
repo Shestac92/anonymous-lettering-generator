@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import Lottie from 'react-lottie';
-import logoAnimation from './logo-animation.json';
+// import logoAnimation from './logo-animation.json';
 
 
 function App() {
@@ -16,15 +16,25 @@ function App() {
   const [sizeRandomFactor, setSizeRandomFactor] = useState(20);
   const isDev = process.env.NODE_ENV === 'development';
   const API_URL = isDev ? 'http://localhost:3001/api/generate' : '/api/generate';
+  const [animationData, setAnimationData] = useState();
 
   const animationOpts = {
     loop: true,
     autoplay: true,
-    animationData: logoAnimation,
+    // animationData: logoAnimation,
+    animationData,
     rendererSettings: {
       preserveAspectRatio: "xMidYMid slice"
     }
   };
+
+  useEffect(() => {
+    console.log("I have been mounted");
+
+    fetch(`/logo-animation.json`)
+      .then(res => res.json())
+      .then(json => setAnimationData(json));
+  }, [])
 
   async function handleClick() {
     if (!prompt) {
@@ -107,14 +117,12 @@ function App() {
           </div>
         </main>
       </div>
-      {/* TODO: handle new line symbol */}
-      {/* TODO: repo readme for PR politics */}
 
       <footer>
         <p>Feel free to open a PR or fork it! <a href="https://github.com/Shestac92/anonymous-lettering-generator">Git repository</a>
         </p>
-        <a href="https://buymeacoffee.com/shestac92">
-            <img height="50px" alt="buy me a coffee" src="https://uc80e5ba3058c2d15b2a77972a8b.previews.dropboxusercontent.com/p/thumb/ACTn6XIfXpYOZMGSapP9iKcoPoc-_Wv9fNGJsqUY2qHdmav4YIATWgX2fXwYlvC0cMDibdCX26Yxd5hbJbaaB-ilNSnCk8BJcA-sVKG8wpb51Z_m5VUWM0LXz9Q0ZoLf-bTKcK6nUQRJmFsOztjCYH5z99BpOdOTwPwhGba0L8_DB8zy5Ev1t6N9kGEoC_UIfxCeIN5OiENm0nRsIfDYUM_S1SBC6Nr-Z0cecCm8NbJI1qUllBWXw4N86RwiTCPxz77wETWbnMAIyl09m41K-CyJuZZAUG0lgvCTMgNLDrFwBDfmyZF3DVHrv_wI5r-FiaVbN8qbcTV88ekvrCd3LUz7/p.png"></img>
+        <a href="https://buymeacoffee.com/shestac92" target="_blank">
+            <img height="50px" alt="buy me a coffee" src="/buy-me-a-coffee.png"></img>
           </a>
       </footer>
     </div>
