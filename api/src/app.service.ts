@@ -99,8 +99,9 @@ export class AppService {
   private wrapWord(word: string, lines: string[]): string {
     for (let i = 0; i < word.length; i += MAX_CHARS_IN_LINE) {
       const subLine = word.slice(i, i + MAX_CHARS_IN_LINE);
+      const tail = word.slice(i + MAX_CHARS_IN_LINE);
 
-      if (subLine.length <= MAX_CHARS_IN_LINE) {
+      if (subLine.length <= MAX_CHARS_IN_LINE && tail.length === 0) {
         return subLine;
       }
 
@@ -140,19 +141,33 @@ export class AppService {
     let cursorY = MARGIN_PX;
 
     for (const line of lines) {
-      const chars = line.split('');
-      const charImgs = await this.getCharImages(chars);
+      const charCodes = line.split('').map((char) => char.charCodeAt(0));
+      const charImgs = await this.getCharImages(charCodes);
 
-      for (const img of charImgs) {
+      for (let i = 0; i < charImgs.length; i++) {
+        const img = charImgs[i];
+        const charCode = charCodes[i];
+
+        const isSmallPunctuationMark = [44, 46].includes(charCode); // .,
+        const isLowProfileMark = [44, 46].includes(charCode); // .,
+
         if (img) {
           const x = cursorX + this.randomOffset(maxXOffset);
-          const y = cursorY + this.randomOffset(maxYOffset);
+          let y = cursorY + this.randomOffset(maxYOffset);
           const cx = x + CHAR_WIDTH_PX / 2;
           const cy = y + CHAR_HEIGHT_PX / 2;
           const rotation = this.randomRotation(maxRotation);
-          const charWidth = CHAR_WIDTH_PX + this.randomOffset(maxSizeDeviation);
-          const charHeight =
-            CHAR_HEIGHT_PX + this.randomOffset(maxSizeDeviation);
+          let charWidth = CHAR_WIDTH_PX + this.randomOffset(maxSizeDeviation);
+          let charHeight = CHAR_HEIGHT_PX + this.randomOffset(maxSizeDeviation);
+
+          if (isSmallPunctuationMark) {
+            charWidth *= 0.5;
+            charHeight *= 0.5;
+          }
+
+          if (isLowProfileMark) {
+            y += charHeight;
+          }
 
           ctx.translate(cx, cy);
           ctx.rotate(rotation);
@@ -170,6 +185,7 @@ export class AppService {
       cursorX = MARGIN_PX;
     }
 
+    console.log('An image was generated!');
     return canvas.toBuffer('image/png').toString('base64');
   }
 
@@ -179,27 +195,29 @@ export class AppService {
     );
   }
 
-  private noImgError(char: string, charCode: number): never {
+  private noImgError(charCode: number): never {
     throw new BadRequestException(
-      `No images for '${char}' with char code '${charCode}' were found`,
+      `No images for '${String.fromCharCode(charCode)}' with char code '${charCode}' were found`,
     );
   }
 
-  private async getCharImages(chars: string[]): Promise<(Image | undefined)[]> {
-    const promisedImageFilePaths = chars.map(async (char) => {
-      if (char === ' ') {
+  private async getCharImages(
+    charCodes: number[],
+  ): Promise<(Image | undefined)[]> {
+    const promisedImageFilePaths = charCodes.map(async (charCode) => {
+      // space check
+      if (charCode === 32) {
         return;
       }
 
-      const charCode = char.charCodeAt(0);
       const charDirPath = join(this.assetsPath, `${charCode}`);
 
       const charFiles = await readdir(charDirPath)
         .then(this.imageFilesFilter)
-        .catch(() => this.noImgError(char, charCode));
+        .catch(() => this.noImgError(charCode));
 
       if (!charFiles.length) {
-        this.noImgError(char, charCode);
+        this.noImgError(charCode);
       }
 
       const charImgFilePath = join(
