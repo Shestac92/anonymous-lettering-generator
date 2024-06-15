@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import Lottie from 'react-lottie';
-// import logoAnimation from './logo-animation.json';
 
 
 function App() {
+  const isDev = process.env.NODE_ENV === 'development';
+  const API_URL = isDev ? 'http://localhost:3001/api/generate' : '/api/generate';
+
   const [prompt, setPrompt] = useState('');
   const [img, setImg] = useState('');
   const [display, setDisplay] = useState('none');
@@ -14,14 +16,11 @@ function App() {
   const [positionRandomOffsetFactor, setPositionRandomOffsetFactor] = useState(20);
   const [rotationRandomDegreeFactor, setRotationRandomDegreeFactor] = useState(20);
   const [sizeRandomFactor, setSizeRandomFactor] = useState(20);
-  const isDev = process.env.NODE_ENV === 'development';
-  const API_URL = isDev ? 'http://localhost:3001/api/generate' : '/api/generate';
   const [animationData, setAnimationData] = useState();
 
   const animationOpts = {
     loop: true,
     autoplay: true,
-    // animationData: logoAnimation,
     animationData,
     rendererSettings: {
       preserveAspectRatio: "xMidYMid slice"
@@ -58,6 +57,8 @@ function App() {
     if (rawRes.ok) {
       const res = await rawRes.text();
       setImg(`data:image/png;base64,${res}`);
+
+      // <a download="FILENAME.EXT" href="data:image/png;base64,asdasd...">Download</a>
       setDisplay('block');
     } else {
       const res = await rawRes.json();
@@ -102,15 +103,17 @@ function App() {
               Letter limitations
             </summary>
             <p id="limitations">
-              The letter size is limited to 20 characters per line and 40 lines in total.
+              The letter size is limited to 20 characters per line and 40 lines in total. With maximum spacing it provides
+              image size about 1180x5120 px.
               Only PNG is supported as the output format to enable a transparent background if needed.
               For support of new languages and symbols, feel free to start a PR with the required assets.
-              For details on PRs, check the repository README.
+              For details on PRs, check <a href="https://github.com/Shestac92/anonymous-lettering-generator/blob/main/README.md">the repository README</a>.
             </p>
           </details>
 
           <button onClick={handleClick}>Generate one</button>
           <div id="responseContainer">
+            <a download="anon-letter.png" href={img} style={{ display: display, marginBottom: 10 }}>Download</a>
             <img id="responseImage" src={img} alt="Server generated response" style={{ display: display }}></img>
           </div>
         </main>

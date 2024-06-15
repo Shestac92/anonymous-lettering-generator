@@ -3,6 +3,8 @@ import { readdir } from 'fs/promises';
 import { resolve, join, extname } from 'path';
 import { Image, createCanvas, loadImage } from 'canvas';
 import { Prompt } from './prompt.interface';
+import type { CanvasRenderingContext2D } from 'canvas';
+import { ClsService } from 'nestjs-cls';
 
 // TODO: https://www.npmjs.com/package/canvas
 const SUPPORTED_EXTENSION = '.jpg';
@@ -22,28 +24,24 @@ const MAX_CHAR_ROTATION_PX = 50;
 export class AppService {
   private readonly assetsPath = resolve(__dirname, '..', 'assets');
 
-  public async handlePrompt({
-    prompt,
-    transparent = false,
-    lineSpacingFactor,
-    letterSpacingFactor,
-    positionRandomOffsetFactor,
-    rotationRandomDegreeFactor,
-    sizeRandomFactor,
-  }: Prompt): Promise<any> {
-    prompt = this.sanitizePrompt(prompt);
+  constructor(private readonly cls: ClsService) {}
+
+  public async handlePrompt(body: Prompt): Promise<any> {
+    performance.mark('A');
+
+    this.sanitizeParams(body);
+    const prompt = this.sanitizePrompt(body.prompt);
     const lines = this.promptToLines(prompt);
 
-    return this.drawLines(
-      lines,
-      transparent,
-      this.normalizeFactor(lineSpacingFactor, MAX_LINE_SPACING_PX),
-      this.normalizeFactor(letterSpacingFactor, MAX_LETTER_SPACING_PX),
-      this.normalizeFactor(positionRandomOffsetFactor, MAX_X_OFFSET_PX),
-      this.normalizeFactor(positionRandomOffsetFactor, MAX_Y_OFFSET_PX),
-      this.normalizeFactor(sizeRandomFactor, MAX_SIZE_DEVIATION_PX),
-      this.normalizeFactor(rotationRandomDegreeFactor, MAX_CHAR_ROTATION_PX),
+    const ctx = this.instantiateCanvas(lines, body.transparent);
+    await this.drawLines(lines, ctx);
+    const base64Image = ctx.canvas.toBuffer('image/png').toString('base64');
+
+    const benchmark = performance.measure('A-B', 'A');
+    console.log(
+      `Image was generated! Took time: ${benchmark.duration} ms. Image size: ${ctx.canvas.width}x${ctx.canvas.height}`,
     );
+    return base64Image;
   }
 
   private getCanvasWidth(lines: string[], letterSpacing: number): number {
@@ -67,7 +65,7 @@ export class AppService {
   private promptToLines(prompt: string): string[] {
     const lines: string[] = [];
     const words = prompt.split(/\n|\s/);
-    // const words = prompt.split(' ');
+
     let word = words[0];
     let currentLine = this.wrapWord(word, lines);
 
@@ -96,6 +94,7 @@ export class AppService {
     return lines;
   }
 
+  /** Wraps the word into multiple lines until there are enough space to place the next word on the last line. */
   private wrapWord(word: string, lines: string[]): string {
     for (let i = 0; i < word.length; i += MAX_CHARS_IN_LINE) {
       const subLine = word.slice(i, i + MAX_CHARS_IN_LINE);
@@ -115,16 +114,43 @@ export class AppService {
 
   private async drawLines(
     lines: string[],
+    ctx: CanvasRenderingContext2D,
+  ): Promise<void> {
+    let cursorX = MARGIN_PX;
+    let cursorY = MARGIN_PX;
+
+    for (const line of lines) {
+      const charCodes = line.split('').map((char) => char.charCodeAt(0));
+      const charImgs = await this.getCharImages(charCodes);
+
+      for (let i = 0; i < charImgs.length; i++) {
+        const img = charImgs[i];
+
+        if (!img) {
+          continue;
+        }
+
+        const charCode = charCodes[i];
+        this.drawChar(ctx, img, charCode, cursorX, cursorY);
+        cursorX += CHAR_WIDTH_PX + this.cls.get('letterSpacing');
+      }
+      cursorY += CHAR_HEIGHT_PX + this.cls.get('lineSpacing');
+      cursorX = MARGIN_PX;
+    }
+  }
+
+  private instantiateCanvas(
+    lines: string[],
     transparent: boolean,
-    lineSpacing: number,
-    letterSpacing: number,
-    maxXOffset: number,
-    maxYOffset: number,
-    maxSizeDeviation: number,
-    maxRotation: number,
-  ): Promise<string> {
-    const canvasWidth = this.getCanvasWidth(lines, letterSpacing);
-    const canvasHeight = this.getCanvasHeight(lines, lineSpacing);
+  ): CanvasRenderingContext2D {
+    const canvasWidth = this.getCanvasWidth(
+      lines,
+      this.cls.get('letterSpacing'),
+    );
+    const canvasHeight = this.getCanvasHeight(
+      lines,
+      this.cls.get('lineSpacing'),
+    );
 
     const canvas = createCanvas(canvasWidth, canvasHeight);
     const ctx = canvas.getContext('2d');
@@ -137,56 +163,50 @@ export class AppService {
     ctx.shadowBlur = 2;
     ctx.shadowColor = 'grey';
 
-    let cursorX = MARGIN_PX;
-    let cursorY = MARGIN_PX;
+    return ctx;
+  }
 
-    for (const line of lines) {
-      const charCodes = line.split('').map((char) => char.charCodeAt(0));
-      const charImgs = await this.getCharImages(charCodes);
+  private drawChar(
+    ctx: CanvasRenderingContext2D,
+    img: Image,
+    charCode: number,
+    cursorX: number,
+    cursorY: number,
+  ): void {
+    const isSmallPunctuationMark = [44, 46].includes(charCode); // .,
+    const isLowProfileMark = [44, 46].includes(charCode); // .,
 
-      for (let i = 0; i < charImgs.length; i++) {
-        const img = charImgs[i];
-        const charCode = charCodes[i];
+    const x = cursorX + this.randomOffset(this.cls.get('maxXOffset'));
+    let y = cursorY + this.randomOffset(this.cls.get('maxYOffset'));
 
-        const isSmallPunctuationMark = [44, 46].includes(charCode); // .,
-        const isLowProfileMark = [44, 46].includes(charCode); // .,
+    const cx = x + CHAR_WIDTH_PX / 2;
+    const cy = y + CHAR_HEIGHT_PX / 2;
+    const rotation = this.randomRotation(this.cls.get('maxRotation'));
 
-        if (img) {
-          const x = cursorX + this.randomOffset(maxXOffset);
-          let y = cursorY + this.randomOffset(maxYOffset);
-          const cx = x + CHAR_WIDTH_PX / 2;
-          const cy = y + CHAR_HEIGHT_PX / 2;
-          const rotation = this.randomRotation(maxRotation);
-          let charWidth = CHAR_WIDTH_PX + this.randomOffset(maxSizeDeviation);
-          let charHeight = CHAR_HEIGHT_PX + this.randomOffset(maxSizeDeviation);
+    let charWidth =
+      CHAR_WIDTH_PX + this.randomOffset(this.cls.get('maxSizeDeviation'));
+    let charHeight =
+      CHAR_HEIGHT_PX + this.randomOffset(this.cls.get('maxSizeDeviation'));
 
-          if (isSmallPunctuationMark) {
-            charWidth *= 0.5;
-            charHeight *= 0.5;
-          }
-
-          if (isLowProfileMark) {
-            y += charHeight;
-          }
-
-          ctx.translate(cx, cy);
-          ctx.rotate(rotation);
-          ctx.translate(-cx, -cy);
-
-          ctx.drawImage(img, x, y, charWidth, charHeight);
-
-          ctx.translate(cx, cy);
-          ctx.rotate(-rotation);
-          ctx.translate(-cx, -cy);
-        }
-        cursorX += CHAR_WIDTH_PX + letterSpacing;
-      }
-      cursorY += CHAR_HEIGHT_PX + lineSpacing;
-      cursorX = MARGIN_PX;
+    if (isSmallPunctuationMark) {
+      charWidth *= 0.5;
+      charHeight *= 0.5;
     }
 
-    console.log('An image was generated!');
-    return canvas.toBuffer('image/png').toString('base64');
+    if (isLowProfileMark) {
+      y += charHeight;
+    }
+
+    ctx.translate(cx, cy);
+    ctx.rotate(rotation);
+    ctx.translate(-cx, -cy);
+
+    ctx.drawImage(img, x, y, charWidth, charHeight);
+
+    // revert rotation to default initial position
+    ctx.translate(cx, cy);
+    ctx.rotate(-rotation);
+    ctx.translate(-cx, -cy);
   }
 
   private imageFilesFilter(fileNames: string[]): string[] {
@@ -242,5 +262,40 @@ export class AppService {
   private normalizeFactor(factor = 0.2, maxAttributeValue: number): number {
     factor = Math.max(0, Math.min(factor, 1));
     return maxAttributeValue * factor;
+  }
+
+  private sanitizeParams(body: Prompt): void {
+    this.cls.set(
+      'lineSpacing',
+      this.normalizeFactor(body.lineSpacingFactor, MAX_LINE_SPACING_PX),
+    );
+
+    this.cls.set(
+      'letterSpacing',
+      this.normalizeFactor(body.letterSpacingFactor, MAX_LETTER_SPACING_PX),
+    );
+
+    this.cls.set(
+      'maxXOffset',
+      this.normalizeFactor(body.positionRandomOffsetFactor, MAX_X_OFFSET_PX),
+    );
+
+    this.cls.set(
+      'maxYOffset',
+      this.normalizeFactor(body.positionRandomOffsetFactor, MAX_Y_OFFSET_PX),
+    );
+
+    this.cls.set(
+      'maxSizeDeviation',
+      this.normalizeFactor(body.sizeRandomFactor, MAX_SIZE_DEVIATION_PX),
+    );
+
+    this.cls.set(
+      'maxRotation',
+      this.normalizeFactor(
+        body.rotationRandomDegreeFactor,
+        MAX_CHAR_ROTATION_PX,
+      ),
+    );
   }
 }
