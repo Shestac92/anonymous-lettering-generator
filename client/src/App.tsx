@@ -15,7 +15,7 @@ function App() {
   const [letterSpacingFactor, setLetterSpacingFactor] = useState(20);
   const [positionRandomOffsetFactor, setPositionRandomOffsetFactor] = useState(20);
   const [rotationRandomDegreeFactor, setRotationRandomDegreeFactor] = useState(20);
-  const [sizeRandomFactor, setSizeRandomFactor] = useState(20);
+  const [sizeRandomFactor, setSizeRandomFactor] = useState(40);
   const [animationData, setAnimationData] = useState();
 
   const animationOpts = {
@@ -107,7 +107,7 @@ function App() {
               image size about 1180x5120 px.
               Only PNG is supported as the output format to enable a transparent background if needed.
               For support of new languages and symbols, feel free to start a PR with the required assets.
-              For details on PRs, check <a href="https://github.com/Shestac92/anonymous-lettering-generator/blob/main/README.md">the repository README</a>.
+              For details on PRs, check <a href="https://github.com/Shestac92/anonymous-lettering-generator/blob/main/README.md#policy-for-pr-suggestions">the repository README</a>.
             </p>
           </details>
 

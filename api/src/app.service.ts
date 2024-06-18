@@ -6,8 +6,7 @@ import { Prompt } from './prompt.interface';
 import type { CanvasRenderingContext2D } from 'canvas';
 import { ClsService } from 'nestjs-cls';
 
-// TODO: https://www.npmjs.com/package/canvas
-const SUPPORTED_EXTENSION = '.jpg';
+const SUPPORTED_EXTENSION = '.png';
 const MARGIN_PX = 10;
 const CHAR_WIDTH_PX = 20;
 const CHAR_HEIGHT_PX = 30;
@@ -19,6 +18,9 @@ const MAX_X_OFFSET_PX = 25;
 const MAX_Y_OFFSET_PX = 15;
 const MAX_SIZE_DEVIATION_PX = 25;
 const MAX_CHAR_ROTATION_PX = 50;
+const lowProfileCharCodes = [44, 46, 95];
+const highProfileCharCodes = [39, 34, 94, 96];
+const smallPunctuationMark = [...lowProfileCharCodes, ...highProfileCharCodes];
 
 @Injectable()
 export class AppService {
@@ -173,8 +175,8 @@ export class AppService {
     cursorX: number,
     cursorY: number,
   ): void {
-    const isSmallPunctuationMark = [44, 46].includes(charCode); // .,
-    const isLowProfileMark = [44, 46].includes(charCode); // .,
+    const isSmallPunctuationMark = smallPunctuationMark.includes(charCode);
+    const isLowProfileMark = lowProfileCharCodes.includes(charCode);
 
     const x = cursorX + this.randomOffset(this.cls.get('maxXOffset'));
     let y = cursorY + this.randomOffset(this.cls.get('maxYOffset'));

@@ -1,4 +1,4 @@
-# anonymous-lettering-generator
+# Anonymous Letter Generator
 
 ## Disclaimer
 
@@ -30,7 +30,21 @@ So, I chose option 2.
 
 The project includes a collection of character images. The application sanitizes the prompt, wraps lines to fit the canvas, arranges the character images on the canvas, and returns the image buffer. During the composition step, it applies random shifts and offsets to each character.
 
-## PR guide
+## Policy for PR Suggestions
+If you have any ideas on how to:
+
+- Improve the tool
+- Add new functionality, such as extra parameters, textures, etc.
+- Add new symbols and languages
+
+Feel free to suggest a PR!
+
+### Requirements for New Symbols:
+- Format: PNG
+- No background
+- (recommended) Use 256 colors only to minimize image size
+- (recommended) Image dimensions between 100x100 and 200x200 pixels to provide optimal quality and minimal file size
+- Create a directory `api/assets/{CHAR_CODE}` for the collection of images for the given symbol. You can get the character code like this: `"&".charCodeAt() // returns 38`. Add images to this directory. For consistency, I recommend using names like 1.png, 2.png, etc., but the server will handle any file name.
 
 ## Build and run
 
@@ -49,13 +63,39 @@ Build prod sequentially
 npm run build:prod --workspaces
 ```
 
+Build Docker image from source
+```
+docker build --platform linux/x86_64 -t anonymous-lettering-generator:latest .
+```
+
+Run Docker image locally in detached mode
+```
+docker run -p 3001:3001 -d --name anon-letter.online anonymous-lettering-generator:latest
+```
+
+Connect to shell in the running container for debugging purposes
+```
+docker exec -it anon-letter.online /bin/sh
+```
+
 ## API Reference
 
-docker build --platform linux/x86_64 -t anonymous-lettering-generator:latest .
-docker run -p 3001:3001 -d anonymous-lettering-generator:latest
-docker exec -it 0cbecdab93ccd78e585302e9d9f6a4be5121592f6722acccb75828b755510ab9 /bin/sh
+<details>
+<summary><code>POST</code> <code>/api/generate</code></summary>
 
-// TODO: the rest of symbols
-// TODO: support of high profile chars
+Payload
+```json
+{
+    "prompt": "text of my ransom letter",
+    "transparent": false,
+    "lineSpacingFactor": 0.2, // 0 - 1
+    "letterSpacingFactor": 0.2,
+    "positionRandomOffsetFactor": 0.2,
+    "rotationRandomDegreeFactor": 0.2,
+    "sizeRandomFactor": 0.2
+}
+```
+
+Response is a base64 encoded PNG image.
+
 // TODO: adjust client for mobile devices
-// TODO: readme
