@@ -96,6 +96,11 @@ Payload
 }
 ```
 
+## Further plans
+
+- create Telegram bot
+- add different paper textured backgrounds
+
 Response is a base64 encoded PNG image.
 
 // TODO: adjust client for mobile devices
