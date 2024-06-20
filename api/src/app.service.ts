@@ -128,12 +128,11 @@ export class AppService {
       for (let i = 0; i < charImgs.length; i++) {
         const img = charImgs[i];
 
-        if (!img) {
-          continue;
+        if (img) {
+          const charCode = charCodes[i];
+          this.drawChar(ctx, img, charCode, cursorX, cursorY);
         }
 
-        const charCode = charCodes[i];
-        this.drawChar(ctx, img, charCode, cursorX, cursorY);
         cursorX += CHAR_WIDTH_PX + this.cls.get('letterSpacing');
       }
       cursorY += CHAR_HEIGHT_PX + this.cls.get('lineSpacing');
