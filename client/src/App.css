@@ -1,40 +1,34 @@
 body {
   font-family: Arial, sans-serif;
   background-color: #020f1f;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
   height: 100vh;
   margin: 0;
 }
 
 .container {
   background-color: #051d3b;
-  padding: 20px;
+  margin: auto;
   text-align: center;
   width: 100%;
-  max-width: 1000px;
-}
-
-h1 {
-  margin-bottom: 20px;
-  color:#cedef2;
+  max-width: 800px;
 }
 
 h3 {
-  margin-bottom: 20px;
+  margin: 0;
   color:#cedef2;
+  width: 95%;
+  margin: auto;
 }
 
 textarea {
   background-color: #cedef2;
   color: #051d3b;
-  width: 100%;
-  max-width: 500px;
-  min-width: 500px;
+  width: 95%;
+  margin: 0;
+  padding: 0;
+  resize: none;
+  max-width: 800px;
   min-height: 50px;
-  margin-bottom: 10px;
   border: 1px solid #020f1f;
   border-radius: 4px;
 }
@@ -53,17 +47,18 @@ button:hover {
   background-color: #98a5b4;
 }
 
-#limitations {
-  width: 480px;
-}
-
 #responseContainer {
-  margin-top: 20px;
+  margin: auto;
+  width: 100%;
+  max-width: 800px;
+  padding-bottom: 10px;
 }
 
 #responseImage {
-  max-width: 100%;
   border-radius: 8px;
+  margin: auto;
+  text-align: center;
+  max-width: 95%;
 }
 
 footer {
@@ -71,9 +66,10 @@ footer {
   border-top: 1px solid #020f1f;
   color: #cedef2;
   text-align: center;
-  padding: 10px 20px;
+  padding: 0px 0px 10px;
+  margin: auto;
   width: 100%;
-  max-width: 1000px;
+  max-width: 800px;
 }
 
 footer a {
@@ -87,7 +83,8 @@ details {
   flex-direction: column; /* Arrange the sliders vertically */
   gap: 10px; /* Adjust the gap between slider-wrapper elements as needed */
   color:#cedef2;
-  margin: 10px;
+  margin: 10px 0px 0px 10px;
+  padding-bottom: 10px;
 }
 
 summary {
@@ -115,6 +112,7 @@ summary {
 }
 
 #limitations {
-  max-width: 100%;
+  padding-top: 5px;
+  margin: 0px 10px 0px 0px;
   text-align: left;
 }

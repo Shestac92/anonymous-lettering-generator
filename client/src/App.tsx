@@ -57,8 +57,6 @@ function App() {
     if (rawRes.ok) {
       const res = await rawRes.text();
       setImg(`data:image/png;base64,${res}`);
-
-      // <a download="FILENAME.EXT" href="data:image/png;base64,asdasd...">Download</a>
       setDisplay('block');
     } else {
       const res = await rawRes.json();
@@ -68,14 +66,12 @@ function App() {
 
   return (
     <div className="App">
-      {/* <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="shestac92" data-color="#FFDD00" data-emoji="☕"  data-font="Lato" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script> */}
-
       <div className="container">
         <header>
           <Lottie
             options={animationOpts}
-            height={200}
-            width={500}
+            isClickToPauseDisabled={true}
+            style={{maxWidth: '600px'}}
           />
         </header>
 
@@ -112,8 +108,11 @@ function App() {
           </details>
 
           <button onClick={handleClick}>Generate one</button>
+          <a download="anon-letter.png" href={img} style={{ display: display, marginBottom: 10, paddingTop: 10 }}>
+            <button>Download</button>
+          </a>
+
           <div id="responseContainer">
-            <a download="anon-letter.png" href={img} style={{ display: display, marginBottom: 10 }}>Download</a>
             <img id="responseImage" src={img} alt="Server generated response" style={{ display: display }}></img>
           </div>
         </main>

@@ -90,19 +90,18 @@ Payload
 {
     "prompt": "text of my ransom letter",
     "transparent": false,
-    "lineSpacingFactor": 0.2, // 0 - 1
+    "lineSpacingFactor": 0.2,
     "letterSpacingFactor": 0.2,
     "positionRandomOffsetFactor": 0.2,
     "rotationRandomDegreeFactor": 0.2,
     "sizeRandomFactor": 0.2
 }
 ```
+All factors are numbers between 0 and 1.
+
+Response is a base64 encoded PNG image.
 
 ## Further plans
 
 - create Telegram bot
 - add different paper textured backgrounds
-
-Response is a base64 encoded PNG image.
-
-// TODO: adjust client for mobile devices
